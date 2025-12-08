@@ -17,7 +17,8 @@
 
 (defn part-2-process-file [file-path]
   (let [lines (-> file-path slurp str/trim str/split-lines)
-        ops (->> lines last str/trim (#(str/split % #"\s+")) (map read-string))
+        string-ops (-> lines last str/trim (str/split #"\s+"))
+        ops (map {"+" + "*" *} string-ops)
         nums-by-col (->> lines
                          butlast
                          (map char-array)
@@ -27,7 +28,7 @@
                          (partition-by nil?)
                          (take-nth 2))
         totals (map #(eval (cons %1 %2)) ops nums-by-col)]
-    (reduce + totals)))
+    (apply + totals)))
 
 (assert (= (part-1-process-file "sample.txt") 4277556))
 (prn (part-1-process-file "input.txt"))
