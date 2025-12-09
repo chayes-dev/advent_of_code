@@ -8,14 +8,6 @@
         splitter-positions (map get-splitter-positions (rest contents))]
     [initial-beam-position splitter-positions]))
 
-(defn combine-maps
-  [op & ms]
-  (let [all-keys (mapcat keys ms)
-        val-for-key (fn [k] (apply op (map #(get % k (op)) ms)))]
-   (apply hash-map (interleave all-keys (map val-for-key all-keys)))))
-
-(assert (= (combine-maps + {:a 1 :b 2} {:b 3 :d 4}) {:a 1 :b 5 :d 4}))
-
 (defn part-1-propagate-beams
   [{:keys [beam-positions n-splits]} splitter-positions]
   (let [beam-groups (group-by #(contains? splitter-positions %) beam-positions)
@@ -25,6 +17,22 @@
         new-beam-positions (set/union diffracted-beams non-split-beams)]
     {:n-splits (+ n-splits (count split-beams)) :beam-positions new-beam-positions}))
 
+(defn part-1-process-file [file-path]
+  (let [[initial-beam-position splitter-positions] (parse-file file-path)
+        final-state (reduce part-1-propagate-beams {:beam-positions #{initial-beam-position} :n-splits 0} splitter-positions)]
+    (:n-splits final-state)))
+
+(assert (= (part-1-process-file "sample.txt") 21))
+(prn (part-1-process-file "input.txt"))
+
+(defn combine-maps
+  [op & ms]
+  (let [all-keys (mapcat keys ms)
+        val-for-key (fn [k] (apply op (map #(get % k (op)) ms)))]
+   (apply hash-map (interleave all-keys (map val-for-key all-keys)))))
+
+(assert (= (combine-maps + {:a 1 :b 2} {:b 3 :d 4}) {:a 1 :b 5 :d 4}))
+
 (defn part-2-propagate-beams
   [beam-intensities splitter-positions]
   (let [beam-groups (group-by #(contains? splitter-positions %) (keys beam-intensities))
@@ -33,18 +41,10 @@
         split-beams-out (mapcat (fn [[k v]] (list {(inc k) v} {(dec k) v})) split-beams-in)]
     (apply combine-maps + (cons non-split-beams split-beams-out))))
 
-(defn part-1-process-file [file-path]
-  (let [[initial-beam-position splitter-positions] (parse-file file-path)
-        final-state (reduce part-1-propagate-beams {:beam-positions #{initial-beam-position} :n-splits 0} splitter-positions)]
-    (:n-splits final-state)))
-
 (defn part-2-process-file [file-path]
   (let [[initial-beam-position splitter-positions] (parse-file file-path)
         final-state (reduce part-2-propagate-beams {initial-beam-position 1} splitter-positions)]
     (apply + (vals final-state))))
-
-(assert (= (part-1-process-file "sample.txt") 21))
-(prn (part-1-process-file "input.txt"))
 
 (assert (= (part-2-process-file "sample.txt") 40))
 (prn (part-2-process-file "input.txt"))
