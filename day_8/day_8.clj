@@ -23,12 +23,12 @@
         new-cluster (apply set/union pair-clusters)]
     {:clusters (set (cons new-cluster retained-clusters))}))
 
-(add-link {:clusters #{#{1 2} #{3 4} #{5}}} [4 5])
+(comment (add-link {:clusters #{#{1 2} #{3 4} #{5}}} [4 5]))
 
 (defn agglomerative-cluster [points & {:keys [n-steps reducer] :or {reducer add-link}}]
   (let [point-pairs (pairs points)
         sorted-pairs (into [] (sort-by #(apply dist %) point-pairs))
-        singleton-clusters (set (map #(set #{%}) points))
+        singleton-clusters (set (map hash-set points))
         pairs-to-process (if n-steps (take n-steps sorted-pairs) sorted-pairs)]
     (reduce reducer {:clusters singleton-clusters} pairs-to-process)))
 
@@ -47,9 +47,9 @@
 (defn part-2-reducer [{:keys [clusters] :as state} points]
   (if (> (count clusters) 1)
     (assoc (add-link state points) :latest-points points)
-    state))
+    (reduced state)))
 
-(part-2-reducer {:clusters #{#{[1 0] [2 1]} #{[3 5] [4 2]} #{[5 0]}}} #{[1 0] [3 5]})
+(comment (part-2-reducer {:clusters #{#{[1 0] [2 1]} #{[3 5] [4 2]} #{[5 0]}}} #{[1 0] [3 5]}))
 
 (defn part-2-process-file
   [file-path]
